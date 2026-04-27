@@ -1,0 +1,129 @@
+{
+	"pages": [
+		{
+			"path": "pages/session/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "会话",
+				"backgroundColor": "#F4F8FC",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationStyle": "custom",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/workspace/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "工作台",
+				"backgroundColor": "#F4F8FC",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "我的",
+				"backgroundColor": "#F7F9FC",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/chat/index",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#F4F8FC",
+				"bounce": "none",
+				"app-plus": {
+					"softinputMode": "adjustResize"
+				}
+			}
+		},
+		{
+			"path": "pages/player/index",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#000000",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/common/browser",
+			"style": {
+				"backgroundColor": "#FFFFFF",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/workspace/memo-detail",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#F7F9FC",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/workspace/document-detail",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#F3F6FB",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/workspace/miniprogram-detail",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#F7F9FC",
+				"bounce": "none"
+			}
+		},
+		{
+			"path": "pages/workspace/miniprogram-files",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "#F7F9FC",
+				"bounce": "none"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "ChatClaw",
+		"navigationBarBackgroundColor": "#F4F8FC",
+		"backgroundColor": "#F4F8FC"
+	},
+	"tabBar": {
+		"color": "#94A3B8",
+		"selectedColor": "#60A5FA",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/session/index",
+				"iconPath": "/static/tabbar/session.png",
+				"selectedIconPath": "/static/tabbar/session1.png",
+				"text": "会话"
+			},
+			{
+				"pagePath": "pages/workspace/index",
+				"iconPath": "/static/tabbar/workspace.png",
+				"selectedIconPath": "/static/tabbar/workspace1.png",
+				"text": "工作台"
+			},
+			{
+				"pagePath": "pages/profile/index",
+				"iconPath": "/static/tabbar/profile.png",
+				"selectedIconPath": "/static/tabbar/profile1.png",
+				"text": "我的"
+			}
+		]
+	},
+	"uniIdRouter": {}
+}
