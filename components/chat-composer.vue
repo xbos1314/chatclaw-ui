@@ -59,7 +59,7 @@
 				{{ recordButtonText }}
 			</button>
 			<view v-else class="composer-input-wrap">
-				<textarea class="composer-input" auto-height :adjust-position="false" cursor-spacing="24" placeholder="输入消息" v-model="draft"></textarea>
+				<textarea class="composer-input" auto-height :adjust-position="false" cursor-spacing="24" placeholder="输入消息" v-model="draft" maxlength="-1"></textarea>
 			</view>
 			<view
 				v-if="voiceMode && supportsVoiceInput"

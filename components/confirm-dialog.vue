@@ -70,7 +70,7 @@ export default {
 	position: fixed;
 	inset: 0;
 	z-index: 120;
-	background: rgba(15, 23, 42, 0.08);
+	background: rgba(15, 23, 42, 0.22);
 	display: flex;
 	align-items: center;
 	justify-content: center;
