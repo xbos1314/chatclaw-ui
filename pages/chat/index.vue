@@ -22,6 +22,7 @@
 			:style="{ top: `${headerHeight}px`, bottom: `${composerHeight}px` }"
 			scroll-y
 			:scroll-top="scrollTop"
+			:scroll-into-view="scrollIntoViewId"
 			upper-threshold="0"
 			@scrolltoupper="loadMore"
 			@scroll="handleScroll"
@@ -39,6 +40,7 @@
 				<view
 					v-for="message in displayMessages"
 					:key="message.id"
+					:id="getMessageAnchorId(message.id)"
 					class="message-item"
 				>
 					<message-bubble
@@ -52,7 +54,7 @@
 			</view>
 		</scroll-view>
 		<view class="chat-composer-host">
-			<chat-composer @message-sent="scrollToBottom" @layout-change="updateLayoutMetrics"></chat-composer>
+			<chat-composer @message-sent="scrollToLatestMessage" @layout-change="updateLayoutMetrics"></chat-composer>
 		</view>
 		<confirm-dialog
 			:visible="confirmDialog.visible"
@@ -88,6 +90,7 @@ export default {
 		return {
 			store: chatStore.state,
 			scrollTop: 999999,
+			scrollIntoViewId: '',
 			headerHeight: 88,
 			composerHeight: 96,
 			skipNextAutoScroll: false,
@@ -153,7 +156,7 @@ export default {
 		}
 		await this.$nextTick()
 		this.updateLayoutMetrics()
-		this.scrollToBottom()
+		this.scrollToLatestMessage()
 	},
 	onShow() {
 		this.$nextTick(() => {
@@ -174,11 +177,14 @@ export default {
 				return
 			}
 			this.$nextTick(() => {
-				this.scrollToBottom()
+				this.scrollToLatestMessage()
 			})
 		}
 	},
 	methods: {
+		getMessageAnchorId(messageId) {
+			return `chat-message-anchor-${messageId}`
+		},
 		getMessageText(message) {
 			return getMessageTextContent(message)
 		},
@@ -186,10 +192,16 @@ export default {
 			chatStore.deselectAgent()
 			uni.navigateBack()
 		},
-		scrollToBottom() {
-			this.scrollTop = 0
+		scrollToLatestMessage() {
+			const latestMessage = this.displayMessages[this.displayMessages.length - 1]
+			if (!latestMessage || !latestMessage.id) {
+				return
+			}
 			this.$nextTick(() => {
-				this.scrollTop = 999999
+				this.scrollIntoViewId = ''
+				this.$nextTick(() => {
+					this.scrollIntoViewId = this.getMessageAnchorId(latestMessage.id)
+				})
 			})
 		},
 		updateLayoutMetrics() {
