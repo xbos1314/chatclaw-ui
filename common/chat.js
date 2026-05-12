@@ -368,20 +368,27 @@ export function readFileAsBase64(source) {
 		// #ifdef APP-PLUS
 		if (source && source.path && typeof plus !== 'undefined') {
 			if (source.path.indexOf('content://') === 0 && plus.os.name === 'Android') {
+				let inputStream = null
 				try {
 					const Uri = plus.android.importClass('android.net.Uri')
 					const Base64 = plus.android.importClass('android.util.Base64')
 					const main = plus.android.runtimeMainActivity()
+					const contentResolver = main.getContentResolver()
 					const uri = Uri.parse(source.path)
-					const inputStream = main.getContentResolver().openInputStream(uri)
-					plus.android.importClass(inputStream)
-					const bytes = inputStream.readAllBytes()
-					inputStream.close()
+					inputStream = plus.android.invoke(contentResolver, 'openInputStream', uri)
+					if (!inputStream) {
+						throw new Error('无法打开所选文件')
+					}
+					const bytes = readAndroidInputStreamBytes(inputStream)
 					resolve(Base64.encodeToString(bytes, Base64.NO_WRAP))
 					return
 				} catch (error) {
 					reject(error)
 					return
+				} finally {
+					if (inputStream) {
+						plus.android.invoke(inputStream, 'close')
+					}
 				}
 			}
 			plus.io.resolveLocalFileSystemURL(source.path, entry => {
@@ -414,4 +421,19 @@ export function readFileAsBase64(source) {
 		reject(new Error('当前小程序环境无法读取文件'))
 		// #endif
 	})
+}
+
+function readAndroidInputStreamBytes(inputStream) {
+	try {
+		return plus.android.invoke(inputStream, 'readAllBytes')
+	} catch (error) {
+		const ByteArrayOutputStream = plus.android.importClass('java.io.ByteArrayOutputStream')
+		const outputStream = new ByteArrayOutputStream()
+		let nextByte = plus.android.invoke(inputStream, 'read')
+		while (nextByte !== -1) {
+			plus.android.invoke(outputStream, 'write', nextByte)
+			nextByte = plus.android.invoke(inputStream, 'read')
+		}
+		return plus.android.invoke(outputStream, 'toByteArray')
+	}
 }
