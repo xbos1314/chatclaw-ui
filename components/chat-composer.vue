@@ -445,28 +445,6 @@ export default {
 		},
 		chooseFile() {
 			return new Promise((resolve, reject) => {
-				// #ifndef H5
-				uni.chooseMessageFile({
-					count: 1,
-					type: 'file',
-					success: result => {
-						const file = (result.tempFiles || [])[0] || {}
-						resolve({
-							path: file.path || '',
-							name: file.name || '',
-							file: file
-						})
-					},
-					fail: error => {
-						if (error && error.errMsg && error.errMsg.indexOf('cancel') !== -1) {
-							resolve(null)
-							return
-						}
-						reject(error)
-					}
-				})
-				// #endif
-
 				// #ifdef H5
 				const input = document.createElement('input')
 				input.type = 'file'
@@ -488,7 +466,141 @@ export default {
 				}
 				input.click()
 				// #endif
+
+				// #ifdef APP-PLUS
+				this.chooseAppFile(resolve, reject)
+				// #endif
+
+				// #ifdef MP
+				uni.chooseMessageFile({
+					count: 1,
+					type: 'file',
+					success: result => {
+						const file = (result.tempFiles || [])[0] || {}
+						resolve({
+							path: file.path || '',
+							name: file.name || '',
+							file: file
+						})
+					},
+					fail: error => {
+						if (error && error.errMsg && error.errMsg.indexOf('cancel') !== -1) {
+							resolve(null)
+							return
+						}
+						reject(error)
+					}
+				})
+				// #endif
 			})
+		},
+		chooseAppFile(resolve, reject) {
+			if (typeof plus === 'undefined') {
+				reject(new Error('当前 App 环境不可用'))
+				return
+			}
+			if (plus.os.name !== 'Android') {
+				reject(new Error('iOS App 端选择普通文件需要接入原生文件选择插件'))
+				return
+			}
+			try {
+				const requestCode = 7114
+				const main = plus.android.runtimeMainActivity()
+				const Intent = plus.android.importClass('android.content.Intent')
+				const Activity = plus.android.importClass('android.app.Activity')
+				const intent = new Intent(Intent.ACTION_GET_CONTENT)
+				intent.addCategory(Intent.CATEGORY_OPENABLE)
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+				intent.setType('*/*')
+
+				const previousHandler = main.onActivityResult
+				main.onActivityResult = (requestCodeResult, resultCode, data) => {
+					if (requestCodeResult !== requestCode) {
+						if (typeof previousHandler === 'function') {
+							previousHandler(requestCodeResult, resultCode, data)
+						}
+						return
+					}
+					main.onActivityResult = previousHandler
+					if (resultCode !== Activity.RESULT_OK || !data) {
+						resolve(null)
+						return
+					}
+					const uri = data.getData()
+					if (!uri) {
+						resolve(null)
+						return
+					}
+					const path = this.getAndroidFilePath(main, uri) || String(uri.toString())
+					resolve({
+						path: path,
+						name: this.getAndroidFileName(main, uri) || path.split('/').pop() || 'upload.bin',
+						file: null
+					})
+				}
+				main.startActivityForResult(intent, requestCode)
+			} catch (error) {
+				reject(error)
+			}
+		},
+		getAndroidFileName(main, uri) {
+			let cursor = null
+			try {
+				const OpenableColumns = plus.android.importClass('android.provider.OpenableColumns')
+				cursor = main.getContentResolver().query(uri, null, null, null, null)
+				plus.android.importClass(cursor)
+				if (cursor && cursor.moveToFirst()) {
+					const nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+					if (nameIndex >= 0) {
+						return cursor.getString(nameIndex)
+					}
+				}
+			} catch (error) {
+				return ''
+			} finally {
+				if (cursor) {
+					cursor.close()
+				}
+			}
+			return ''
+		},
+		getAndroidFilePath(main, uri) {
+			try {
+				plus.android.importClass(uri)
+				if (uri.getScheme() === 'file') {
+					return uri.getPath()
+				}
+				if (uri.getScheme() !== 'content') {
+					return ''
+				}
+				const path = this.getAndroidDataColumn(main, uri, null, null)
+				if (path) {
+					return path
+				}
+			} catch (error) {
+				return ''
+			}
+			return ''
+		},
+		getAndroidDataColumn(main, uri, selection, selectionArgs) {
+			let cursor = null
+			try {
+				cursor = main.getContentResolver().query(uri, ['_data'], selection, selectionArgs, null)
+				plus.android.importClass(cursor)
+				if (cursor && cursor.moveToFirst()) {
+					const index = cursor.getColumnIndex('_data')
+					if (index >= 0) {
+						return cursor.getString(index)
+					}
+				}
+			} catch (error) {
+				return ''
+			} finally {
+				if (cursor) {
+					cursor.close()
+				}
+			}
+			return ''
 		},
 		startRecord(event) {
 			if (!this.recorderManager || this.recording) {

@@ -367,6 +367,23 @@ export function readFileAsBase64(source) {
 
 		// #ifdef APP-PLUS
 		if (source && source.path && typeof plus !== 'undefined') {
+			if (source.path.indexOf('content://') === 0 && plus.os.name === 'Android') {
+				try {
+					const Uri = plus.android.importClass('android.net.Uri')
+					const Base64 = plus.android.importClass('android.util.Base64')
+					const main = plus.android.runtimeMainActivity()
+					const uri = Uri.parse(source.path)
+					const inputStream = main.getContentResolver().openInputStream(uri)
+					plus.android.importClass(inputStream)
+					const bytes = inputStream.readAllBytes()
+					inputStream.close()
+					resolve(Base64.encodeToString(bytes, Base64.NO_WRAP))
+					return
+				} catch (error) {
+					reject(error)
+					return
+				}
+			}
 			plus.io.resolveLocalFileSystemURL(source.path, entry => {
 				entry.file(file => {
 					const reader = new plus.io.FileReader()
